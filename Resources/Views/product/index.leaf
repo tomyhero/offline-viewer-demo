@@ -1,0 +1,30 @@
+#extend("base")
+
+#export("body") {
+
+<a href="/products/create" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+  <i class="material-icons">add</i>
+</a>
+
+<br />
+<br />
+<br />
+
+<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+  <tr>
+    <th>id</th>
+    <th>version</th>
+    <th>name</th>
+    <th>&nbsp;</th>
+  </tr>
+  #loop(products, "product") { 
+  <tr>
+    <td>#(product.id)</td>
+    <td>#(product.version)</td>
+    <td>#(product.name)</td>
+    <td><a href="/products/#(product.id)/edit">edit</a></td>
+  </tr>
+  }
+</table>
+
+}

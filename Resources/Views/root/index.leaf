@@ -1,0 +1,80 @@
+#extend("base")
+
+
+#export("html_args") { manifest="products.manifest" }
+
+#export("body") {
+
+<div class="mdl-grid">
+  <div class="mdl-cell mdl-cell--2-col" id="container-menu"></div>
+
+  <div class="mdl-cell mdl-cell--8-col">
+    <span id="application-cache-status"></span> 
+    <div id="container-content"></div></div>
+</div>
+
+}
+
+#export("footer") {
+
+<script type="text/html" id="tmpl-content">
+  <h3>[%= name %]</h3>
+  <img src="[%= image_url %]" width="200" />
+  <div>[%= content %]</div>
+</script>
+
+<script type="text/html" id="tmpl-menu">
+
+<ul class="mdl-list">
+[% for(i = 0 ; i < items.length ; i++ ) { %]
+  <li class="mdl-list__item">
+    <a class="mdl-list__item-primary-content nav-link" href="javascript:void(0)" data-id="[%= items[i].id %]">[%= items[i].name %]</a>
+  </li>
+[% } %]
+</ul>
+</script>
+
+  <script>
+  var DATA = {};
+
+  $('body').on('click', '.nav-link', function() {
+
+    for ( i = 0 ; i < DATA["items"].length; i++ ) {
+      if ( DATA["items"][i]["id"] == $(this).data('id') ) {
+        $("\#container-content").html( $("\#tmpl-content").template(DATA["items"][i]) );
+      }
+    }
+
+  });
+
+  $.getJSON( "/api/product_info", function(data) {
+    DATA = data;
+    $("\#container-menu").html( $("\#tmpl-menu").template(data) );
+    $("\#container-content").html( $("\#tmpl-content").template(DATA["items"][0]) );
+  });
+
+  var AC = window.AC = {};
+  AC = {
+    setup: function() {
+      window.addEventListener('load', function(e) {
+        window.applicationCache.addEventListener('updateready', function(e) {
+          $("\#application-cache-status").html( window.applicationCache.status );
+          if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+            window.applicationCache.swapCache();
+            if (confirm('データの更新がありました。再読み込みしますか？')) {
+              window.location.reload();
+            }
+          } else {
+            // Manifest didn't changed. Nothing new to server.
+          }
+        }, false);
+
+      }, false);
+
+    }
+  };
+
+  AC.setup();
+
+  </script>
+  }

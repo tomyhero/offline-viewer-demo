@@ -1,0 +1,36 @@
+<html #import("html_args")>
+  <head>
+    <link rel="stylesheet" href="/3rd/material-icon.css">
+    <link rel="stylesheet" href="/3rd/material.indigo-pink.min.css">
+    <script defer src="/3rd/material.min.js"></script>
+  </head>
+  <body>
+
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+          <span class="mdl-layout-title">Offline Viewer</span>
+        </div>
+      </header>
+
+      <div class="mdl-layout__drawer">
+        <span class="mdl-layout-title">Offline Viewer</span>
+        <nav class="mdl-navigation">
+          <a class="mdl-navigation__link" href="/">Top</a>
+          <a class="mdl-navigation__link" href="/products/">Product Manage</a>
+        </nav>
+      </div>
+
+      <main class="mdl-layout__content">
+      <div class="page-content" style="padding:10px;margin:10px;">
+        #import("body")
+      </div>
+      </main>
+
+    </div>
+    <script src="/3rd/jquery.min.js"></script>
+    <script src="/js/jquery.template.js"></script>
+    #import("footer")
+  </body>
+</html>

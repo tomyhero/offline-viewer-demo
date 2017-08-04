@@ -1,0 +1,33 @@
+#extend("base")
+
+#export("body") {
+
+<div class="demo-card-wide mdl-card mdl-shadow--2dp" style="padding:10px">
+
+  <form method="post" action="/products/#(product.id)">
+    <input type="hidden" name="_METHOD" value="patch" />
+
+    <div class="mdl-textfield mdl-js-textfield">
+      <input class="mdl-textfield__input" type="text" name="name" id="name" value="#(product.name)">
+      <label class="mdl-textfield__label" for="name">Name...</label>
+    </div>
+
+    <div class="mdl-textfield mdl-js-textfield">
+      <input class="mdl-textfield__input" type="text" name="image_url" id="image_url" value="#(product.image_url)">
+      <label class="mdl-textfield__label" for="image_url">Image URL...</label>
+    </div>
+
+
+    <div class="mdl-textfield mdl-js-textfield">
+      <textarea class="mdl-textfield__input" type="text" rows= "10" name="content" id="content" >#(product.content)</textarea>
+      <label class="mdl-textfield__label" for="content">Content...</label>
+    </div>
+
+    <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+      <i class="material-icons">add</i>
+    </button>
+
+  </form>
+</div>
+
+}
