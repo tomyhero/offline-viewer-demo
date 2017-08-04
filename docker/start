@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+cd /offline-viewer-demo 
+/usr/local/bin/vapor run
+
+bash

@@ -1,0 +1,209 @@
+#!/bin/bash
+export DEBIAN_FRONTEND=noninteractive
+ 
+function usage()
+{
+cat << EOF
+
+  Install packages and Swift on Ubuntu
+
+  Syntax:
+    install  --ubuntu=<Ubuntu version>
+             --package=<ubuntu package to install> 
+             [--clean=<clean packages. Default false>] 
+             [--source=<apple|apt>]
+             [--apt=<Add APT sources]
+             [--swift=<Swift version>]
+             [--vapor=<vapor version>]
+             [--branch=<branch date>]        
+             [--snapshot=<snapshot date>]        
+
+  Values for snapshot and branch:
+      - a date like '2017-01-15', 
+      - a word like 'today' or 'yesterday'
+
+EOF
+exit 255
+}
+
+if [ "$#" -eq 0 ] 
+then
+  usage
+else
+  CLEAN="false"
+  for PARAM in "$@"
+  do
+    case $PARAM in
+        --ubuntu=*)
+          UBUNTU="${PARAM#*=}"
+          shift
+          ;;
+        --package=*)
+          PACKAGES="$PACKAGES ${PARAM#*=}"
+          shift
+          ;;
+        --clean=*)
+          CLEAN="${PARAM#*=}"
+          shift
+          ;;
+        --source=*)
+          SOURCE="${PARAM#*=}"
+          shift
+          ;;
+        --apt=*)
+          APT="${PARAM#*=}"
+          shift
+          ;;
+        --swift=*)
+          SWIFT="${PARAM#*=}"
+          shift
+          ;;
+        --vapor=*)
+          VAPOR="${PARAM#*=}"
+          shift
+          ;;
+        --branch=*)
+          BRANCH="${PARAM#*=}"
+          shift
+          ;;
+        --snapshot=*)
+          SNAPSHOT="${PARAM#*=}"
+          shift
+          ;;
+        *)
+          usage
+        ;;
+    esac
+  done
+fi
+
+# Define sudo if not root
+if [[ $EUID -ne 0 ]]
+then
+ SUDO=sudo
+fi
+
+# Update packages
+if [ ! -z "$APT" -a ! -z "$SOURCE" ]
+then
+  echo "---------------------------------"
+  echo "Update packages"
+  echo "---------------------------------"
+  $SUDO apt-get update 
+fi
+
+# Install vapor packages 
+if [ "$APT" == "vapor" ]
+then
+  echo "---------------------------------"
+  echo "Install lsb-release"
+  echo "---------------------------------"
+  $SUDO apt-get install -y --no-install-recommends lsb-release 
+  echo "---------------------------------"
+  echo "Add vapor packages"
+  echo "---------------------------------"
+  eval "$($SUDO cat /etc/lsb-release)"
+  $SUDO apt-get -q update
+  $SUDO apt-get -q install -y wget software-properties-common python-software-properties apt-transport-https
+  $SUDO wget -q https://repo.vapor.codes/apt/keyring.gpg -O- | $SUDO apt-key add -
+  echo "deb https://repo.vapor.codes/apt $DISTRIB_CODENAME main" | $SUDO tee /etc/apt/sources.list.d/vapor.list
+  $SUDO apt-get -q update
+fi
+
+# Ubuntu packages
+if [ ! -z "$PACKAGES" ]
+then
+  echo "---------------------------------"
+  echo "Install packages"
+  echo "---------------------------------"
+  $SUDO apt-get install -y --no-install-recommends $PACKAGES
+  if [ "$CLEAN" == "true" ]
+  then
+    $SUDO apt-get clean
+    $SUDO rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+  fi
+fi
+
+#Install Swift from branch or snapshot
+if [ "$SOURCE" == "apple" ]
+then 
+  echo "---------------------------------"
+  echo "Install swift from Apple"
+  echo "---------------------------------"
+  if [ ! -z "$SWIFT" -o ! -z "$BRANCH" -o ! -z "$SNAPSHOT" ] 
+  then
+    if [ ! -z "$SWIFT" ]
+    then
+      export SWIFT_ARCHIVE_NAME=swift-${SWIFT}-RELEASE-ubuntu${UBUNTU}
+      export SWIFT_URL=https://swift.org/builds/swift-${SWIFT}-release/ubuntu${UBUNTU//.}/swift-${SWIFT}-RELEASE/${SWIFT_ARCHIVE_NAME}.tar.gz
+    fi
+
+    if [ ! -z "$BRANCH" ] 
+    then
+      # Check branch date
+      case $BRANCH in
+        today)
+          SBRANCH=$(date +%Y-%m-%d)
+          ;;
+        yesterday)
+          SBRANCH=$(date +%Y-%m-%d -d "1 day ago")
+          ;;
+      esac
+      export SWIFT_ARCHIVE_NAME=swift-${SWIFT}-DEVELOPMENT-SNAPSHOT-${BRANCH}-a-ubuntu${UBUNTU}
+      export SWIFT_URL=https://swift.org/builds/swift-${SWIFT}-branch/ubuntu${UBUNTU//.}/swift-${SWIFT}-DEVELOPMENT-SNAPSHOT-${BRANCH}-a/${SWIFT_ARCHIVE_NAME}.tar.gz
+    fi
+
+    if [ ! -z "$SNAPSHOT" ] 
+    then
+      case $SNAPSHOT in
+        today)
+          SNAPSHOT=$(date +%Y-%m-%d)
+          ;;
+        yesterday)
+          SNAPSHOT=$(date +%Y-%m-%d -d "1 day ago")
+          ;;
+      esac
+      export SWIFT_ARCHIVE_NAME=swift-DEVELOPMENT-SNAPSHOT-${SNAPSHOT}-a-ubuntu${UBUNTU}
+      export SWIFT_URL=https://swift.org/builds/development/ubuntu${UBUNTU//.}/swift-DEVELOPMENT-SNAPSHOT-${SNAPSHOT}-a/${SWIFT_ARCHIVE_NAME}.tar.gz
+    fi
+
+    if [ ! -z "$SWIFT_URL" ]
+    then
+      cd /tmp
+      mkdir swift.org
+      cd swift.org
+      echo "Download: ${SWIFT_URL}"
+      curl -OL ${SWIFT_URL}
+      curl -OL ${SWIFT_URL}.sig
+      $SUDO tar -xvzf ${SWIFT_ARCHIVE_NAME}.tar.gz --directory / --strip-components=1
+      rm -rf /tmp/swift.org
+    fi
+  fi
+fi 
+
+if [ "$SOURCE" == "apt" ] 
+then
+  # Install swift from vapor package
+  if [ ! -z "$SWIFT" ] 
+  then
+    echo "---------------------------------"
+    echo "Install Swift from vapor"
+    echo "---------------------------------"
+    $SUDO apt-get install -y --no-install-recommends swift=$SWIFT 
+  fi
+
+  #Install Vapor
+  if [ ! -z "$VAPOR" ] 
+  then
+    echo "---------------------------------"
+    echo "Install Vapor"
+    echo "---------------------------------"
+    $SUDO apt-get install -y --no-install-recommends vapor=$VAPOR
+  fi 
+fi
+
+if [ "$CLEAN" == "true" ]
+then
+  $SUDO apt-get clean
+  $SUDO rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+fi
