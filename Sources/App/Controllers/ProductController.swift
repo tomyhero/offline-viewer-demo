@@ -14,9 +14,11 @@ final class ProductController: ResourceRepresentable {
             create:create,
             store: store,
             edit: edit,
-            update: update
+            update: update,
+            destroy: delete
         )
     }
+
 
     // GET /products/
     func index(_ req: Request) throws -> ResponseRepresentable {
@@ -73,6 +75,12 @@ final class ProductController: ResourceRepresentable {
       try product.update(for: req)
       try product.save()
 
+      return Response(redirect: "/products/")
+    }
+
+    /// DELETE /products/:id
+    func delete( req: Request, product: Product) throws -> ResponseRepresentable {
+      try product.delete()
       return Response(redirect: "/products/")
     }
 

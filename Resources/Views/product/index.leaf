@@ -23,6 +23,9 @@
     <td>#(product.version)</td>
     <td>#(product.name)</td>
     <td><a href="/products/#(product.id)/edit">edit</a></td>
+    <td><form method="post" action="/products/#(product.id)/">
+        <input type="hidden" name="_METHOD" value="DELETE" />
+        <button value="delete">delete</button></form></td>
   </tr>
   }
 </table>

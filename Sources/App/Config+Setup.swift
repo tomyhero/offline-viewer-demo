@@ -12,12 +12,8 @@ extension Config {
         try setupProviders()
         try setupPreparations()
         try setupMiddlewares()
-        try addPreparations()
     }
     
-    private func addPreparations() {
-          preparations.append(Product.self)
-    }
 
     private func setupMiddlewares() throws {
         try addConfigurable(middleware: RequestMethodLooseMiddleware(), name: "request_method_loose")
